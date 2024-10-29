@@ -1,0 +1,14 @@
+trigger NotifyStatusChange on Assignment__c (after update) {
+    List<Messaging.SingleEmailMessage> emails = new List<Messaging.SingleEmailMessage>();
+    for (Assignment__c assignment : Trigger.new) {
+        if (assignment.Status__c != Trigger.oldMap.get(assignment.Id).Status__c) {
+            Messaging.SingleEmailMessage email = new Messaging.SingleEmailMessage();
+            email.setToAddresses(new String[] { assignment.Technician_ID__r.Email__c, assignment.Customer_Email__c });
+            email.setSubject('Assignment Status Update: ' + assignment.Status__c);
+            email.setPlainTextBody('The status of your assignment for Work Order ID ' + assignment.WorkOrder_ID__c + 
+                                   ' has been updated to ' + assignment.Status__c + '.');
+            emails.add(email);
+        }
+    }
+    Messaging.sendEmail(emails);
+}
