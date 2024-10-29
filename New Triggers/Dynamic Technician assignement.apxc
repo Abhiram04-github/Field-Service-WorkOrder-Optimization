@@ -1,1 +1,14 @@
-
+trigger AssignTechnician on WorkOrder__c (after insert) {
+    List<Assignment__c> assignments = new List<Assignment__c>();
+    for (WorkOrder__c workOrder : Trigger.new) {
+        Technician__c bestTech = [SELECT Id, Name, Phone__c, Skills__c, Availability__c 
+                                   FROM Technician__c 
+                                   WHERE Skills__c = :workOrder.Service_Type__c 
+                                   AND Availability__c = 'Available' 
+                                   AND Location__c = :workOrder.Location__c 
+                                   ORDER BY (SELECT COUNT() FROM Assignments__r) ASC 
+                                   LIMIT 1];
+        assignments.add(new Assignment__c(WorkOrder_ID__c = workOrder.Id, Technician_ID__c = bestTech.Id));
+    }
+    insert assignments;
+}
